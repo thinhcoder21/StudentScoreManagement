@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+    <h1>Home</h1>
+    {% if current_user.is_authenticated %}
+        <p>Welcome! <strong>{{ current_user }}</strong></p>
+        <h1>List Score</h1>
+
+            <table border="1">
+                <tr>
+                    <th>Course</th>
+                    <th>Score</th>
+                </tr>
+                {% for score in student_score %}
+                <tr>
+                    <td>{{ score.course.name }}</td>
+                    <td>{{ score.score }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+    {% else %}
+            <a href="{% url 'social:begin' 'facebook' %}?next={{ request.path }}">Login with Facebook</a>
+            <br>
+            <a href="{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}">Login with Google</a>
+            <p>{% url 'social:begin' 'google-oauth2' %}?next={{ request.path }}</p>
+    {% endif %}
+</body>
+</html>

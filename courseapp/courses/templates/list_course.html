@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LIST COURSE</title>
+</head>
+<body>
+    <h1>List Score</h1>
+
+    <table border="1">
+        <tr>
+            <th>Course</th>
+            <th>Score</th>
+        </tr>
+        {% for score in student_score %}
+        <tr>
+            <td>{{ score.course.name }}</td>
+            <td>{{ score.score }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
