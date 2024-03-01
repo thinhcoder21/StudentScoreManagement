@@ -350,19 +350,6 @@ class ManageScoreView(APIView):
         return Response({"message": "You have permission to manage grades."}, status=status.HTTP_200_OK)
 
 
-
-class TeacherAPIView(generics.ListCreateAPIView):
-    queryset = Teacher.objects.all()
-    serializer_class = TeacherSerializer
-
-class StudentAPIView(generics.ListCreateAPIView):
-    queryset = Student.objects.all()
-    serializer_class = StudentSerializer
-
-class ClassAPIView(generics.ListCreateAPIView):
-    queryset = Class.objects.all()
-    serializer_class = ClassSerializer
-
 class ClassViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIView, generics.CreateAPIView,
                             generics.UpdateAPIView, generics.DestroyAPIView):
     queryset = Class.objects.all()

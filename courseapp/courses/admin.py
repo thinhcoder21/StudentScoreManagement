@@ -58,11 +58,8 @@ class ClassAdmin(admin.ModelAdmin):
     list_display = ['id', 'name']
     def save_related(self, request, form, formsets, change):
         super().save_related(request, form, formsets, change)
-        # Lưu tất cả các thay đổi liên quan vào cơ sở dữ liệu trước khi thêm các tài khoản vào trường account.
-        # Lấy thể hiện của Class sau khi đã được lưu vào cơ sở dữ liệu
         instance = form.instance
 
-        # Lưu tất cả các thay đổi liên quan vào cơ sở dữ liệu
         for formset in formsets:
             self.save_formset(request, form, formset, change=change)
 
