@@ -1,6 +1,7 @@
-from .models import User,Role,Account,Post,PostForum,ForumQuestion,ForumReponse,ForumAnswer,Teacher,Student,Class
+from .models import User,Role,Account,Post,PostForum,ForumQuestion,ForumReponse,ForumAnswer,Teacher,Student,Class,Score,Course
 from rest_framework import serializers
-
+from django import forms
+from django.core.validators import RegexValidator
 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
@@ -191,6 +192,15 @@ class ForumAnswerSerializer(serializers.ModelSerializer):
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(style={'input_type':'password'},write_only=True)
+    email = forms.EmailField(
+        validators=[
+            RegexValidator(
+                regex=r'^[a-zA-Z0-9._%+-]+@ou\.edu\.vn$',
+                message='Email must be in the format user@ou.edu.vn',
+                code='invalid_email'
+            ),
+        ],
+    )
     class Meta:
         model = User
         fields = ['username','email','password']
@@ -235,3 +245,13 @@ class UpdateClassSerializer(serializers.ModelSerializer):
     class Meta:
         model = Class
         fields = ['id','name','account']
+
+class ScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Score
+        fields = '__all__'
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'

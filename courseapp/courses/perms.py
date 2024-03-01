@@ -25,3 +25,7 @@ class CanManageScorePermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.user.has_perm('courseapp.can_manage_score')
+
+class IsTeacher(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.groups.filter(name='Teacher').exists()

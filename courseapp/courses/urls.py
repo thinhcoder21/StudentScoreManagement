@@ -2,8 +2,8 @@ from django.urls import path, include
 from django.contrib.auth.views import LogoutView
 from . import views
 from rest_framework import routers
-from .views import (HomeView, user_register_view, user_logout, UserRegistrationView ,UserLoginView,
-                    list_course,ManageScoreView,teacher_dashboard)
+from .views import (HomeView, user_register_view, user_logout, UserRegistrationView ,UserLoginView,ScoreViewSet,
+                    list_course,ManageScoreView,teacher_dashboard,CourseListCreateView)
 
 router = routers.DefaultRouter()
 router.register('roles',views.RoleViewSet, basename= 'roles')
@@ -15,6 +15,7 @@ router.register('forum_questions',views.ForumQuestionViewSet, basename= 'forum_q
 router.register('forum_responses',views.ForumResponseViewSet, basename= 'forum_responses')
 router.register('forum_answers',views.ForumAnswerViewSet, basename= 'forum_answers')
 router.register('classes',views.ClassViewSet, basename= 'classes')
+router.register('scores', views.ScoreViewSet, basename='scores')
 
 urlpatterns = [
     path('',include(router.urls)),
@@ -27,4 +28,6 @@ urlpatterns = [
     path('logout/', user_logout, name='logout'),
     path('list-course/', list_course, name='list_course'),
     path('manage-score/', teacher_dashboard, name='manage_score'),
+    path('scores/search_students/', ScoreViewSet.as_view({'get': 'search_students'}), name='search_students'),
+    path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
 ]

@@ -10,10 +10,11 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.urls import reverse
+from django.urls import reverse_lazy
 
-from .perms import IsAdmin, PostOwner , CanManageScorePermission
+from .perms import IsAdmin, PostOwner, CanManageScorePermission, IsTeacher
 from drf_yasg.openapi import Response
-from .models import User,Role,Post,PostForum,ForumQuestion,ForumAnswer,ForumReponse,Account,Score,Teacher,Student,Class
+from .models import User,Role,Post,PostForum,ForumQuestion,ForumAnswer,ForumReponse,Account,Score,Teacher,Student,Class,Course
 
 from rest_framework.decorators import action, permission_classes
 from rest_framework import viewsets, generics, status , parsers, permissions
@@ -23,6 +24,7 @@ from rest_framework.decorators import api_view
 from . import serializers
 from . import paginators
 from . import perms
+from functools import wraps
 
 from .serializers import (RoleSerializer,UserSerializer,PostSerializer,AccountSerializer,CreateAccountSerializer,
                           CreateUserSerializer,CreatePostSerializer,CreateForumAnswerSerializer,CreateForumQuestionSerializer,
@@ -31,7 +33,9 @@ from .serializers import (RoleSerializer,UserSerializer,PostSerializer,AccountSe
                           UpdateForumQuestionSerializer,ForumReponseSerializer,
                           ForumAnswerSerializer,UpdateForumAnswerSerializer,UserRegisterSerializer,
                           TeacherSerializer, StudentSerializer, ClassSerializer,
-                          CreateClassSerializer,UpdateClassSerializer)
+                          CreateClassSerializer,UpdateClassSerializer,ScoreSerializer,CourseSerializer)
+
+from .dao import search_students_by_name
 # Create your views here.
 
 class UserViewSet(viewsets.ViewSet,generics.CreateAPIView):
@@ -252,7 +256,12 @@ class HomeView(View):
     template_name = "login_google/home.html"
     def get(self,request):
         current_user =  request.user
-        return render(request, self.template_name, {'current_user': current_user})
+        student_scores = Score.objects.filter(student=request.user.account)
+        context = {
+            'current_user': request.user,
+            'student_scores': student_scores,
+        }
+        return render(request, self.template_name,context)
 
 @api_view(["POST"])
 def user_register_view(request):
@@ -262,7 +271,7 @@ def user_register_view(request):
             if serializer.is_valid():
                 serializer.save()
 
-                return HttpResponse(serializer.data, status=status.HTTP_201_CREATED)
+                return redirect('login')
             return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class UserRegistrationView(APIView):
@@ -275,15 +284,14 @@ class UserRegistrationView(APIView):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return HttpResponse("Registration successful", status=status.HTTP_201_CREATED)
+            return redirect('login')
         return HttpResponse(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def is_teacher(user):
     return user.groups.filter(name='Teacher').exists()
 
-@user_passes_test(is_teacher, login_url='/login/')  # Redirect to the login page if not a teacher
+@user_passes_test(lambda u: is_teacher(u), login_url='login/')  # Redirect to the login page if not a teacher
 def teacher_dashboard(request):
-    # Logic for the teacher dashboard view
     return render(request, 'manage_score.html')
 
 class UserLoginView(APIView):
@@ -293,19 +301,29 @@ class UserLoginView(APIView):
         return render(request, self.template_name)
 
     def post(self, request):
-        username = request.POST.get('username')
+        email = request.POST.get('email')
         password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
+        user = authenticate(request, email=email, password=password)
 
         if user is not None:
             login(request, user)
             if user.is_authenticated :
-                if is_teacher(request.user):
-                    return redirect(reverse('manage_score'))
+                if request.user.groups.filter(name='Teacher').exists():
+                    print("Redirecting to teacher_dashboard")
+                    return reverse_lazy(reverse('manage_score'))
                 else:
                     return redirect('home')
         else:
             return render(request, self.template_name, {'error': 'Invalid login credentials'})
+
+def teacher_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if request.user.groups.filter(name='Teacher').exists():
+            return view_func(request, *args, **kwargs)
+        else:
+            return redirect('login')  # Chuyển hướng đến trang đăng nhập
+    return _wrapped_view
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -357,3 +375,23 @@ class ClassViewSet(viewsets.ViewSet, generics.ListAPIView, generics.RetrieveAPIV
         if self.action in ['update','partial_update']:
             return UpdateClassSerializer
         return self.serializer_class
+class ScoreViewSet(viewsets.ModelViewSet):
+    queryset = Score.objects.all()
+    serializer_class = ScoreSerializer
+    permission_classes = [IsTeacher]
+
+    def search_students(self, request):
+        """
+        Hành động tìm kiếm sinh viên theo họ tên cho giáo viên.
+
+        GET /api/scores/search_students/?student_name=<student_name>
+        """
+        teacher = request.user
+        student_name = request.GET.get('student_name', '')
+        students = search_students_by_name(teacher, student_name)
+        serializer = UserSerializer(students, many=True)
+        return Response(serializer.data)
+
+class CourseListCreateView(generics.ListCreateAPIView):
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer

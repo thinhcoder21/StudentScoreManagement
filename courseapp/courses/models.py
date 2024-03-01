@@ -9,7 +9,7 @@ from django.conf import settings
 
 class User(AbstractUser):
     avatar = CloudinaryField('avatar', null=True)
-
+    email = models.EmailField(unique=True)
     def __str__(self):
         return self.username
 
@@ -53,11 +53,9 @@ class Score(BaseModel):
 
 class Teacher(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Các trường khác cho giáo viên
 
 class Student(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    # Các trường khác cho sinh viên
 
 class Class(models.Model):
     name = models.CharField(max_length=255)

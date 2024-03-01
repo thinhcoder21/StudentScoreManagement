@@ -6,7 +6,7 @@ from django.utils.html import mark_safe
 from django import forms
 from ckeditor_uploader.widgets import CKEditorUploadingWidget
 from django.urls import path
-from .models import PostForum,ForumQuestion,User,Role,Account,Post,ForumAnswer,ForumReponse,Class
+from .models import PostForum,ForumQuestion,User,Role,Account,Post,ForumAnswer,ForumReponse,Class,Score,Course
 
 class RoleAdmin(admin.ModelAdmin):
     pass
@@ -69,7 +69,13 @@ class ClassAdmin(admin.ModelAdmin):
         # Lưu các tài khoản vào trường account của Class
         account_data = form.cleaned_data.get('account', [])
         instance.account.set(account_data)
+class ScoreAdmin(admin.ModelAdmin):
+    pass
+class CourseAdmin(admin.ModelAdmin):
+    pass
 
+admin.site.register(Course,CourseAdmin)
+admin.site.register(Score,ScoreAdmin)
 admin.site.register(Class, ClassAdmin)
 admin.site.register(Role,RoleAdmin)
 admin.site.register(User, UserAdmin)

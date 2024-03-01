@@ -51,13 +51,12 @@ CKEDITOR_UPLOAD_PATH = "ckeditor/images/"
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-    'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
-    'rest_framework.authentication.TokenAuthentication',
+                                        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+                                        'rest_framework.authentication.TokenAuthentication',
     )
 }
 
 import cloudinary
-
 cloudinary.config(
     cloud_name="ddwmpk2nq",
     api_key="864855553777127",
@@ -171,4 +170,5 @@ OAUTH2_PROVIDER = {
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'courseapp.backends.EmailBackend',
 ]
